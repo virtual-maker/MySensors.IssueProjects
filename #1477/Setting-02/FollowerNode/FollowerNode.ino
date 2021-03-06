@@ -77,6 +77,11 @@ void loop()
 
     bool thisSync = digitalRead(SYNC_PIN);
     if (thisSync && !lastSync) {
+        // timeout counter to detect HW issues
+        uint16_t timeout = 0xFFFF;
+        while (digitalRead(SYNC_PIN) && timeout--) {
+        }
+        // Let be sendMessage() successful each SUCCESS_MESSAGE
         if (++messageCounter >= SUCCESS_MESSAGE) {
             messageCounter = 0;
             // Delay sendMessage to avoid collision
@@ -90,7 +95,7 @@ void loop()
             digitalWrite(DEBUG_PIN3, LOW);
         }
     }
-    lastSync = thisSync;
+    lastSync = digitalRead(SYNC_PIN);
 
     // Pin debug: loop end
     digitalWrite(DEBUG_PIN1, LOW);

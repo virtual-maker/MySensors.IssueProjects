@@ -14,7 +14,7 @@
 
 #include <MySensors.h>
 
-const uint32_t sendDelay = 500;
+const uint32_t sendDelay = 30 + 900;
 
 #define SYNC_PIN 8 // Wire pin to connect with the follower node to synchronise message sending
 
@@ -46,6 +46,9 @@ bool sendMessage()
 
     // Send sync signal to follower
     digitalWrite(SYNC_PIN, HIGH);
+    delayMicroseconds(200);
+    digitalWrite(SYNC_PIN, LOW);
+
     // Give follower a little time
     delayMicroseconds(sendDelay);
 
@@ -54,8 +57,6 @@ bool sendMessage()
     bool success = send(msg);
     digitalWrite(DEBUG_PIN2, LOW);
 
-    // Reset sync signal
-    digitalWrite(SYNC_PIN, LOW);
 
     return success;
 }
