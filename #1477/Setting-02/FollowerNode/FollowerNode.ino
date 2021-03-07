@@ -79,6 +79,7 @@ void loop()
     if (thisSync && !lastSync) {
         // timeout counter to detect HW issues
         uint16_t timeout = 0xFFFF;
+        // wait for falling edge
         while (digitalRead(SYNC_PIN) && timeout--) {
         }
         // Let be sendMessage() successful each SUCCESS_MESSAGE
@@ -95,7 +96,7 @@ void loop()
             digitalWrite(DEBUG_PIN3, LOW);
         }
     }
-    lastSync = digitalRead(SYNC_PIN);
+    lastSync = thisSync;
 
     // Pin debug: loop end
     digitalWrite(DEBUG_PIN1, LOW);
