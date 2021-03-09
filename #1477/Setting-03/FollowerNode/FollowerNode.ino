@@ -19,10 +19,8 @@
 
 #include <MySensors.h>
 
-const uint32_t sendDelay = 0;
-
 // After 4 failed messages the next one shall be sent successfully to avoid reset of transport layer
-#define MAX_FAILED_MESSAGES 4 
+#define MAX_FAILED_MESSAGES 4
 
 #define SYNC_PIN 8 // Wire pin to connect with the leader node to synchronise both nodes
 
@@ -42,18 +40,59 @@ void presentation()
 
 void receive(const MyMessage& message)
 {
+	static uint8_t lastValue = 0;
+
+	// We only expect one type of message from controller. But we better check anyway.
+	if (message.type == V_STATUS) {
+		if (message.sender == MY_PARENT_NODE_ID) {
+
+			uint8_t dataSize = message.getLength();
+			uint8_t* data = message.getCustom();
+			uint8_t thisValue = data[dataSize - 1];
+
+			uint8_t actualValue = thisValue;
+			if (actualValue == 0) {
+				actualValue = 16;
+			}
+
+			if (actualValue - 1 != lastValue) {
+				Serial.print("Wrong order - delta: ");
+				int delta = thisValue - lastValue;
+				delta = delta < 0 ? delta + 16 : delta;
+				Serial.print(delta);
+				Serial.print(" last: ");
+				Serial.print(lastValue);
+				Serial.print(" this: ");
+				Serial.println(thisValue);
+
+				// Pin debug: wrong order received
+				digitalWrite(DEBUG_PIN3, HIGH);
+				delay(5);
+				digitalWrite(DEBUG_PIN3, LOW);
+			}
+			lastValue = thisValue;
+
+			// Pin debug: message received
+			digitalWrite(DEBUG_PIN2, HIGH);
+			delay(5);
+			digitalWrite(DEBUG_PIN2, LOW);
+		}
+	}
 }
 
 bool sendMessage()
 {
 	static const uint8_t payloadSize = MAX_PAYLOAD_SIZE;
 	static uint8_t data[payloadSize] = { 0 };
+	static uint8_t sendValue = 0;
 
-	data[payloadSize - 1] = 42;
+	data[payloadSize - 1] = sendValue;
+	sendValue++;
+	if (sendValue == 16) {
+		sendValue = 0;
+	}
 	msg.set(data, payloadSize);
 	msg.setDestination(MY_PARENT_NODE_ID);
-
-	delay(sendDelay);
 
 	// Pin debug: send message
 	digitalWrite(DEBUG_PIN2, HIGH);
