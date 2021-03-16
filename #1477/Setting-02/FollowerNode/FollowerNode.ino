@@ -11,19 +11,26 @@
 #define MY_RADIO_RF24
 // Set transmission channel
 #define MY_RF24_CHANNEL SECRET_RF24_CHANNEL
+// Set auto retry count
+#define MY_RF24_AUTO_RETRY_COUNT 0
 
-#include <MySensors.h>
-
-const uint32_t sendDelay = 0;
-
-// After 4 failed messages the next one shall be sent successfully to avoid reset of transport layer
-#define MAX_FAILED_MESSAGES 4 
-
-#define SYNC_PIN 8 // Wire pin to connect with the leader node to synchronise both nodes
+// Use extended transport handler
+#define MY_TRANSPORT_HAL_SEND_HANDLER
+//#define MY_TRANSPORT_HAL_RECEIVE_HANDLER
 
 #define DEBUG_PIN1 A0
 #define DEBUG_PIN2 A1
 #define DEBUG_PIN3 A2
+
+#include <MySensors.h>
+#include "MyTransportHandler.h"
+
+const uint32_t sendDelay = 0;
+
+#define SYNC_PIN 8 // Wire pin to connect with the leader node to synchronise both nodes
+
+// After 4 failed messages the next one shall be sent successfully to avoid reset of transport layer
+#define MAX_FAILED_MESSAGES 4 
 
 #define MY_CHILD_SENSOR_ID 0
 
@@ -66,6 +73,8 @@ void setup()
 	pinMode(DEBUG_PIN1, OUTPUT);
 	pinMode(DEBUG_PIN2, OUTPUT);
 	pinMode(DEBUG_PIN3, OUTPUT);
+
+	randomSeed(analogRead(A4)); // Analog pin A4 shall be not connected
 }
 
 void loop()

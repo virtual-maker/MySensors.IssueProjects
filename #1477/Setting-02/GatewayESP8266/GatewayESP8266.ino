@@ -9,6 +9,8 @@
 #define MY_RADIO_RF24
 // Set transmission channel
 #define MY_RF24_CHANNEL SECRET_RF24_CHANNEL
+// Set auto retry count
+#define MY_RF24_AUTO_RETRY_COUNT 0
 
 #define MY_GATEWAY_ESP8266
 
@@ -31,7 +33,12 @@
 // How many clients should be able to connect to this gateway (default 1)
 #define MY_GATEWAY_MAX_CLIENTS 2
 
+// Use extended transport handler
+#define MY_TRANSPORT_HAL_SEND_HANDLER
+//#define MY_TRANSPORT_HAL_RECEIVE_HANDLER
+
 #include <MySensors.h>
+#include "MyTransportHandler.h"
 
 void presentation()
 {
@@ -44,6 +51,7 @@ void receive(const MyMessage& message)
 
 void setup()
 {
+    randomSeed(analogRead(A0)); // Analog pin A0 shall be not connected
 }
 
 void loop()
