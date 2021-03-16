@@ -1,7 +1,7 @@
 #include "arduino_secrets.h"
 
 // Enable debug prints to serial monitor
-#define MY_DEBUG
+//#define MY_DEBUG
 // Enable support for I_DEBUG messages.
 #define MY_SPECIAL_DEBUG
 
@@ -16,12 +16,19 @@
 #define MY_RADIO_RF24
 // Set transmission channel
 #define MY_RF24_CHANNEL SECRET_RF24_CHANNEL
+// Set auto retry count
+#define MY_RF24_AUTO_RETRY_COUNT 0
+
+// Use extended transport handler
+#define MY_TRANSPORT_HAL_SEND_HANDLER
+//#define MY_TRANSPORT_HAL_RECEIVE_HANDLER
 
 #define DEBUG_PIN1 A0
 #define DEBUG_PIN2 A1
 #define DEBUG_PIN3 A2
 
 #include <MySensors.h>
+#include "MyTransportHandler.h"
 
 // After 4 failed messages the next one shall be sent successfully to avoid reset of transport layer
 #define MAX_FAILED_MESSAGES 4
@@ -46,8 +53,13 @@ void receive(const MyMessage& message)
 
 			uint8_t dataSize = message.getLength();
 			uint8_t* data = message.getCustom();
-			uint8_t thisValue = data[dataSize - 1];
 
+			// Send response to sender
+			msg.set(data, dataSize);
+			msg.setDestination(MY_PARENT_NODE_ID);
+			send(msg);
+
+			uint8_t thisValue = data[dataSize - 1];
 			uint8_t actualValue = thisValue;
 			if (actualValue == 0) {
 				actualValue = 16;
@@ -84,6 +96,8 @@ void setup()
 	pinMode(DEBUG_PIN1, OUTPUT);
 	pinMode(DEBUG_PIN2, OUTPUT);
 	pinMode(DEBUG_PIN3, OUTPUT);
+
+	randomSeed(analogRead(A4)); // Analog pin A4 shall be not connected
 }
 
 void loop()

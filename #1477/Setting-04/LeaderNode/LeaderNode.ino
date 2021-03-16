@@ -1,7 +1,7 @@
 #include "arduino_secrets.h"
 
 // Enable debug prints to serial monitor
-#define MY_DEBUG
+//#define MY_DEBUG
 // Enable support for I_DEBUG messages.
 #define MY_SPECIAL_DEBUG
 
@@ -11,15 +11,22 @@
 #define MY_RADIO_RF24
 // Set transmission channel
 #define MY_RF24_CHANNEL SECRET_RF24_CHANNEL
+// Set auto retry count
+#define MY_RF24_AUTO_RETRY_COUNT 0
 
 // Enabled repeater feature for this node
 #define MY_REPEATER_FEATURE
+
+// Use extended transport handler
+#define MY_TRANSPORT_HAL_SEND_HANDLER
+//#define MY_TRANSPORT_HAL_RECEIVE_HANDLER
 
 #define DEBUG_PIN1 A0
 #define DEBUG_PIN2 A1
 #define DEBUG_PIN3 A2
 
 #include <MySensors.h>
+#include "MyTransportHandler.h"
 
 #define FOLLOWER_NODE 21
 
@@ -77,7 +84,7 @@ void receive(const MyMessage& message)
 
 bool sendMessage()
 {
-	static const bool requestEcho = true;
+	static const bool requestEcho = false;
 	static const uint8_t payloadSize = MAX_PAYLOAD_SIZE;
 	static uint8_t data[payloadSize] = { 0 };
 	static uint8_t sendValue = 0;
@@ -105,6 +112,8 @@ void setup()
 	pinMode(DEBUG_PIN1, OUTPUT);
 	pinMode(DEBUG_PIN2, OUTPUT);
 	pinMode(DEBUG_PIN3, OUTPUT);
+
+	randomSeed(analogRead(A4)); // Analog pin A4 shall be not connected
 }
 
 void loop()
@@ -117,7 +126,7 @@ void loop()
 	if (millis() - lastMillis > 1000) {
 
 		// Send 16 messages to follower in a row
-		for (size_t i = 0; i < 16; i++) {
+		for (size_t i = 0; i < 10; i++) {
 			bool success = sendMessage();
 			if (!success) {
 				// Pin debug: send failed
@@ -125,6 +134,8 @@ void loop()
 				delay(3);
 				digitalWrite(DEBUG_PIN3, LOW);
 			}
+			// Let transport layer process any incoming messages
+			wait(1);
 		}
 		lastMillis = millis();
 	}
