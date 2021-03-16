@@ -15,11 +15,13 @@ bool transportHALSendHandler(const uint8_t nextRecipient, MyMessage* outMsg, con
 #if defined(DEBUG_PIN2)
 		digitalWrite(DEBUG_PIN2, LOW);
 #endif
-
 		if (result || noACK) {
-			return result;
+			// Always delay after send to give transport layer 
+			// time to receive incoming messages
+			delay(7);
+			break;
 		}
-		uint8_t delta = random(0, 10) * 5;
+		uint8_t delta = random(0, 7) * 7;
 		delay(delta);
 	}
 	return result;
